@@ -1,0 +1,4 @@
+#!/bin/sh
+
+mv dist/assets/vendor/bootstrap/dist/css/bootstrap.css dist/assets/styles/vendor/_bootstrap.scss
+mv dist/assets/vendor/fontawesome/css/font-awesome.css dist/assets/styles/vendor/_font-awesome.scss

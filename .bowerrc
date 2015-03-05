@@ -1,3 +1,6 @@
 {
-  "directory": "dist/assets/vendor"
+  "directory": "dist/assets/vendor",
+  "scripts": {
+    "postinstall": ".bower-postinstall"
+  }
 }
