@@ -10,3 +10,10 @@ file in order to compile them in your application.
 `app` is where all your stuff is compiled or copied, also, this is the folder that
 is being `ftp'd`.
 `dist` is where all your raw stuff is.
+
+
+### To use, WIP
+
+`npm install`
+`bower install`
+`grunt`
