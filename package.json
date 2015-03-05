@@ -1,0 +1,18 @@
+{
+  "name": "html-boilerplate",
+  "version": "0.0.1",
+  "description": "A small Grunt Boilerplate for standard HTML projects which installs tools like: jQuery, Bootstrap with LiveReload, Minify, Watch and more..",
+  "main": "app/index.html",
+  "scripts": {},
+  "keywords": [
+    "Grunt",
+    "LiveReload",
+    "Minify",
+    "Watchify",
+    "Browserify",
+    "Bootstrap",
+    "jQuery"
+  ],
+  "author": "Vladut Radulescu",
+  "license": "MIT"
+}
