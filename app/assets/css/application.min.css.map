@@ -1,7 +1,0 @@
-{
-"version": 3,
-"mappings": "AAAA,IAAK;EACH,gBAAgB,EAAE,OAAO;;;ACKnB,yBAAQ;EACN,OAAO,EAAE,KAAK",
-"sources": ["../../../dist/assets/styles/vendor/vendor.scss","../../../dist/assets/styles/app.scss"],
-"names": [],
-"file": "application.min.css"
-}
