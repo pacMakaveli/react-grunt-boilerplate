@@ -30,4 +30,4 @@ node_modules
 
 
 .sass-cache
-dist/vendor/*
+dist/assets/vendor/*

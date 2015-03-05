@@ -1,0 +1,13 @@
+@import "vendor/vendor";
+
+.test {
+  .app {
+    .to {
+      .see {
+        &-stuff {
+          display: block;
+        }
+      }
+    }
+  }
+}
