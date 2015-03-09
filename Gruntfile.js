@@ -24,7 +24,7 @@ module.exports = function(grunt) {
 
   builtExtension   = function(file) { return file.replace(/\.less$/, '.css').replace(/\.jsx$/, '.js') },
 
-  makeBuildSrcPathObj = function(files, buildDir) {
+  makeBuildSourceObj = function(files, buildDir) {
     // {'[built file path]': '[source file path]'}
 
     return _.object(files.map(function(file) {
@@ -32,7 +32,7 @@ module.exports = function(grunt) {
     }));
   },
 
-  makeBuildBuildPathObj = function(files, buildDir) {
+  makeBuildObj = function(files, buildDir) {
     // {'[built file path]': '[built file path]'} if already moved to 'buildDir'
 
     return _.object(files.map(function(file) {
@@ -54,17 +54,14 @@ module.exports = function(grunt) {
     },
 
     clean: {
+      options: {
+        dot: true
+      },
       dev: {
-        files: [{
-          dot: true,
-          src: ['<%= appConfig.devDir %>/*', '!<%= appConfig.devDir %>/.git*']
-        }]
+        src: ['<%= appConfig.devDir %>/*', '!<%= appConfig.devDir %>/.git*']
       },
       dist: {
-        files: [{
-          dot: true,
-          src: ['<%= appConfig.distDir %>/*', '!<%= appConfig.distDir %>/.git*']
-        }]
+        src: ['<%= appConfig.distDir %>/*', '!<%= appConfig.distDir %>/.git*']
       }
     },
 
@@ -90,32 +87,33 @@ module.exports = function(grunt) {
     },
 
     browserify: {
+      options: {
+        transform: [
+          require('grunt-react').browserify
+        ]
+      },
       dev: {
         options: {
-          transform: [ require('grunt-react').browserify ],
           browserifyOptions: {
             debug: true
           }
         },
-        files: makeBuildSrcPathObj(appConfig.buildJS, appConfig.devDir)
+        files: makeBuildSourceObj(appConfig.buildJS, appConfig.devDir)
       },
       dist: {
-        options: {
-          transform: [ require('grunt-react').browserify ],
-        },
-        files: makeBuildSrcPathObj(appConfig.buildJS, appConfig.distDir)
+        files: makeBuildSourceObj(appConfig.buildJS, appConfig.distDir)
       }
     },
 
     less: {
       dev: {
-        files: makeBuildSrcPathObj(appConfig.buildCSS, appConfig.devDir)
+        files: makeBuildSourceObj(appConfig.buildCSS, appConfig.devDir)
       },
       dist: {
         options: {
           cleancss: true
         },
-        files: makeBuildSrcPathObj(appConfig.buildCSS, appConfig.distDir)
+        files: makeBuildSourceObj(appConfig.buildCSS, appConfig.distDir)
       }
     },
 
@@ -149,7 +147,7 @@ module.exports = function(grunt) {
 
     uglify: {
       dist: {
-        files: makeBuildBuildPathObj(appConfig.buildJS, appConfig.distDir)
+        files: makeBuildObj(appConfig.buildJS, appConfig.distDir)
       }
     },
 
@@ -158,106 +156,76 @@ module.exports = function(grunt) {
         port: '1338',
         livereload: 35729
       },
-      dev:  { base: appConfig.devDir },
-      dist: { base: appConfig.distDir }
+      dev:  {
+        base: appConfig.devDir
+      },
+      dist: {
+        base: appConfig.distDir
+      }
     },
 
     watch: {
+      options: {
+        livereload: true
+      },
       grunt: {
-        files: 'Gruntfile.js',
-        options: {
-          livereload: true
-        }
+        files: 'Gruntfile.js'
       },
       less: {
         files: '<%= appConfig.appDir %>/styles/**/*.*',
-        // tasks: ['less:dev'],
-        options: {
-          livereload: true
-        }
+        tasks: ['less:dev']
       },
       browserify: {
         files: '<%= appConfig.appDir %>/scripts/**/*.*',
-        // tasks: ['browserify:dev'],
-        options: {
-          livereload: true
-        }
+        tasks: ['browserify:dev']
       },
       copy: {
         files: [
           '<%= appConfig.appDir %>/{,*/}*.{gif,jpeg,jpg,png,webp,gif,ico}',
           '<%= appConfig.appDir %>/fonts/{,*/}*.*'
         ],
-        // tasks: ['copy:dev'],
-        options: {
-          livereload: true
-        }
+        tasks: ['copy:dev']
       },
       react: {
         files: '<%= appConfig.appDir %>scripts/components/*.jsx',
-        // tasks: ['browserify'],
-        options: {
-          livereload: true
-        }
+        tasks: ['browserify']
       },
       html: {
         files: '<%= appConfig.appDir %>/*.html',
-        tasks: ['devBuild'],
-        options: {
-          livereload: true
-        }
+        tasks: ['buildDev']
       }
     }
-  // Goal:
-  //
-  // Task: Grunt server
-  //  1: Watch the handlebars files for changes
-  //  2: Watch the LESS/SASS files for changes
-  //  3: Watch the JS files for changes
-  //  4: Start the server
-  //  5: Open the page
-  //
-  // Task: Grunt serve
-  //  1: Same as grunt deploy but actually test the files as well
-  //
-  // Task: Grunt deploy
-  //  1: Compile all assets
-  //  2: Minify all assets
-  //  3: Compile html files
-  //  4: Move all required files to dist folder
-  //  5: Deploy to FTP
-
   });
 
-  grunt.registerTask('devBuild', [
-      'clean:dev',      // clean old files out of build/dev
-      'copy:dev',       // copy static asset files from app/ to build/dev
-      'browserify:dev', // bundle JS with browserify
-      'less:dev',       // compile LESS to CSS
-      'htmlbuild:dev'   // replace tags in index.html to point to built js/css
-  ]);
-  grunt.registerTask('serveDev', [
-      'devBuild',
-      'connect:dev',     // web server for serving files from build/dev
-      'watch'            // watch src files for changes and rebuild when necessary
+  grunt.registerTask('buildDev', [
+    'clean:dev',
+    'copy:dev',
+    'browserify:dev',
+    'less:dev',
+    'htmlbuild:dev'
   ]);
 
-  // Distribution tasks
-  grunt.registerTask('distBuild', [
-      'clean:dist',      // clean old files out of build/dist
-      'copy:dist',       // copy static asset files from app/ to build/dist
-      'browserify:dist', // bundle JS with browserify
-      'less:dist',       // compile LESS to CSS
-      'htmlbuild:dist',  // replace tags in index.html to point to built js/css
-      'uglify:dist'     // minify JS files
+  grunt.registerTask('serveDev', [
+    'buildDev',
+    'connect:dev',
+    'watch'
+  ]);
+
+  grunt.registerTask('buildDist', [
+    'clean:dist',
+    'copy:dist',
+    'browserify:dist',
+    'less:dist',
+    'htmlbuild:dist',
+    'uglify:dist'
   ]);
   grunt.registerTask('serveDist', [
-      'distBuild',
-      'connect:dev',     // web server for serving files from build/dev
-      'watch'            // watch src files for changes and rebuild when necessary
+    'buildDist',
+    'connect:dev',
+    'watch'
   ]);
 
-  grunt.registerTask('build', ['distBuild']);
-  grunt.registerTask('serve', ['serveDev']);
-  grunt.registerTask('debug', ['serveDev']);
+  grunt.registerTask('default', ['serveDev']);
+  grunt.registerTask('debug', ['serveDist']);
+  grunt.registerTask('deploy', ['buildDist']);
 }
