@@ -1,6 +1,11 @@
 var _ = require('underscore');
 'use strict';
 
+var lrSnippet = require('grunt-contrib-livereload/lib/utils').livereloadSnippet;
+var mountFolder = function (connect, dir) {
+  return connect.static(require('path').resolve(dir));
+};
+
 module.exports = function(grunt) {
 
   var appConfig = {
@@ -15,7 +20,7 @@ module.exports = function(grunt) {
       'fonts/{,*/}*.*'
     ],
     buildJS:   ['scripts/main.js', 'scripts/app.jsx'],
-    buildCSS:  ['styles/main.less'],
+    buildCSS:  ['styles/main.scss'],
     buildHTML: ['index.html']
   },
 
@@ -24,7 +29,7 @@ module.exports = function(grunt) {
   prependDevBuild  = function(file) { return prependPath(file, appConfig.devDir) },
   prependDistBuild = function(file) { return prependPath(file, appConfig.distDir) },
 
-  builtExtension   = function(file) { return file.replace(/\.less$/, '.css').replace(/\.jsx$/, '.js') },
+  builtExtension   = function(file) { return file.replace(/\.scss$/, '.css').replace(/\.jsx$/, '.js') },
 
   makeBuildSourceObj = function(files, buildDir) {
     // {'[built file path]': '[source file path]'}
@@ -107,14 +112,14 @@ module.exports = function(grunt) {
       }
     },
 
-    less: {
+    sass: {
+      options: {
+        sourceMap: true
+      },
       dev: {
         files: makeBuildSourceObj(appConfig.buildCSS, appConfig.devDir)
       },
       dist: {
-        options: {
-          cleancss: true
-        },
         files: makeBuildSourceObj(appConfig.buildCSS, appConfig.distDir)
       }
     },
@@ -127,12 +132,10 @@ module.exports = function(grunt) {
         diff: true
       },
       dev: {
-        src: '<%= appConfig.devDir %>/styles/*.css',
-        dest: '<%= appConfig.devDir %>/styles/map.css'
+        files: makeBuildSourceObj(appConfig.buildCSS, appConfig.devDir)
       },
       dist: {
-        src: '<%= appConfig.distDir %>/styles/*.css',
-        dest: '<%= appConfig.distDir %>/styles/map.css'
+        files: makeBuildSourceObj(appConfig.buildCSS, appConfig.distDir)
       }
     },
 
@@ -176,7 +179,16 @@ module.exports = function(grunt) {
     connect: {
       options: {
         port: appConfig.port,
-        livereload: 35729
+        livereload: {
+          options: {
+            middleware: function (connect) {
+              return [
+                lrSnippet,
+                mountFolder(connect, appConfig.appDir)
+              ];
+            }
+          }
+        }
       },
       dev:  {
         options: {
@@ -203,9 +215,9 @@ module.exports = function(grunt) {
       grunt: {
         files: 'Gruntfile.js'
       },
-      less: {
+      autoprefixer: {
         files: '<%= appConfig.appDir %>/styles/**/*.*',
-        tasks: ['less:dev', 'autoprefixer:dev']
+        tasks: ['sass:dev', 'autoprefixer:dev']
       },
       browserify: {
         files: '<%= appConfig.appDir %>/scripts/**/*.*',
@@ -233,7 +245,6 @@ module.exports = function(grunt) {
     'clean:dev',
     'copy:dev',
     'browserify:dev',
-    'less:dev',
     'autoprefixer:dev',
     'htmlbuild:dev'
   ]);
@@ -245,11 +256,18 @@ module.exports = function(grunt) {
     'watch'
   ]);
 
+  // For Ubuntu users, watch doesn't work
+  grunt.registerTask('serveDevUbuntu', [
+    'buildDev',
+    'open',
+    'connect:dev:keepalive'
+  ]);
+
   grunt.registerTask('buildDist', [
     'clean:dist',
     'copy:dist',
     'browserify:dist',
-    'less:dist',
+    'sass:dist',
     'htmlbuild:dist',
     'uglify:dist'
   ]);
@@ -262,6 +280,7 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('default', ['serveDev']);
+  grunt.registerTask('serve:ubuntu', ['serveDevUbuntu']);
   grunt.registerTask('debug', ['serveDist']);
   grunt.registerTask('deploy', ['buildDist']);
 }
