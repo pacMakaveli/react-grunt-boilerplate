@@ -6,6 +6,6 @@ var React   = require('react');
 var Profile = require('./components/profile.jsx');
 
 React.renderComponent(
-  <Profile username="Simon" bio="My name is Simon. I make websites" avatar="http://simonsmith.io/assets/images/me.jpg" />,
+  <Profile username="Mr. Kittten" bio="asdad" avatar="https://placekitten.com/g/200/300" />,
   document.getElementById("react-app")
 );
