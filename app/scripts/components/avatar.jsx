@@ -1,4 +1,6 @@
-/** @jsx React.DOM */
+/**
+ * @jsx React.DOM
+ */
 
 var React = require('react');
 

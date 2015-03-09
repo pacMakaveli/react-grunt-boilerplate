@@ -15,7 +15,7 @@ module.exports = function(grunt) {
       'fonts/{,*/}*.*'
     ],
     // add any additional js/less/html files to build here:
-    jsToBuild: ['scripts/main.js'],
+    jsToBuild: ['scripts/main.js', 'scripts/app.jsx'],
     lessToBuild: ['styles/main.less'],
     htmlToBuild: ['index.html']
   };
@@ -110,10 +110,6 @@ var makeBuildBuildPathObj = function(fileNames, buildDir) {
           browserifyOptions: {
             debug: true
           }
-        },
-        client: {
-          src: ['app/scripts/**/*.jsx'],
-          dest: 'scripts/app.built.js'
         },
         files: makeBuildSrcPathObj(config.jsToBuild, config.buildDev)
       },
