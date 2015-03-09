@@ -157,10 +157,14 @@ module.exports = function(grunt) {
         livereload: 35729
       },
       dev:  {
-        base: appConfig.devDir
+        options: {
+          base: appConfig.devDir
+        }
       },
       dist: {
-        base: appConfig.distDir
+        options: {
+          base: appConfig.distDir
+        }
       }
     },
 
