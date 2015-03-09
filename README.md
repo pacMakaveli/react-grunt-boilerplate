@@ -1,19 +1,55 @@
-### Grunt Boilerplate for standard HTML projects
+### ReactJS & Grunt Boilerplate
 
-NPM Manages the JavaScript modules
-Grunt is the Task Runner that handles the compilation and in-browser reload
-Bower for managing the front-end components: CSS, HTML and JS
+ReactJS & Grunt boilerplate for faster development
+Includes:
 
-All bower components are ignored from git, use import in your app.js/app.css
-file in order to compile them in your application.
+Browserify for managing front-end JavaScript components
+Watchify
+Watch with LiveReload
+Grunt
+jQuery, for ReactJS Ajax ( will be replaced with )
 
-`app` is where all your stuff is compiled or copied, also, this is the folder that
-is being `ftp'd`.
-`dist` is where all your raw stuff is.
+INSTALL
 
+git clone
+npm install
+grunt for launching the Demo App
 
-### To use, WIP
+STRUCTURE
 
-`npm install`
-`bower install`
-`grunt`
+app - for developing, raw
+app
+  scripts
+    components
+    - app.jsx
+    - main.js
+
+  styles
+    - main.less
+
+- index.html
+- *.html
+
+dev - for developing, everything compiles here
+dev
+  scripts
+    - app.js
+    - main.js
+
+  styles
+    - main.css
+
+  - index.html
+  - *.html
+
+dist - `grunt serve` to compile for production ( minify and such )
+dist
+  scripts
+    - app.js
+    - main.js
+
+  styles
+    - main.css
+
+  - index.html
+  - *.html
