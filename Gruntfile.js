@@ -1,10 +1,6 @@
 var _ = require('underscore');
 'use strict';
-
-var lrSnippet = require('grunt-contrib-livereload/lib/utils').livereloadSnippet;
-var mountFolder = function (connect, dir) {
-  return connect.static(require('path').resolve(dir));
-};
+'use strict';
 
 module.exports = function(grunt) {
 
@@ -53,13 +49,6 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     appConfig: appConfig,
 
-    watchify: {
-      example: {
-        src: '',
-        dest: ''
-      }
-    },
-
     clean: {
       options: {
         dot: true
@@ -97,7 +86,8 @@ module.exports = function(grunt) {
       options: {
         transform: [
           require('grunt-react').browserify
-        ]
+        ],
+        watch: true
       },
       dev: {
         options: {
@@ -179,16 +169,7 @@ module.exports = function(grunt) {
     connect: {
       options: {
         port: appConfig.port,
-        livereload: {
-          options: {
-            middleware: function (connect) {
-              return [
-                lrSnippet,
-                mountFolder(connect, appConfig.appDir)
-              ];
-            }
-          }
-        }
+        livereload: true
       },
       dev:  {
         options: {
@@ -215,9 +196,12 @@ module.exports = function(grunt) {
       grunt: {
         files: 'Gruntfile.js'
       },
-      autoprefixer: {
+      sass: {
+        options: {
+          livereload: true
+        },
         files: '<%= appConfig.appDir %>/styles/**/*.*',
-        tasks: ['sass:dev', 'autoprefixer:dev']
+        tasks: ['sass:dev']
       },
       browserify: {
         files: '<%= appConfig.appDir %>/scripts/**/*.*',
@@ -245,7 +229,7 @@ module.exports = function(grunt) {
     'clean:dev',
     'copy:dev',
     'browserify:dev',
-    'autoprefixer:dev',
+    'sass:dev',
     'htmlbuild:dev'
   ]);
 
