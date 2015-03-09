@@ -1,14 +1,6 @@
 var _ = require('underscore');
 'use strict';
 
-var path = require('path');
-
-var lrSnippet  = require('grunt-contrib-livereload/lib/utils').livereloadSnippet;
-var mountFolder = function(connect, dir) {
-  return connect.static(path.resolve(dir));
-};
-
-
 module.exports = function(grunt) {
   var config = {
     src: 'app',
@@ -114,18 +106,20 @@ var makeBuildBuildPathObj = function(fileNames, buildDir) {
     browserify: {
       dev: {
         options: {
-          transform: ['reactify'],
+          transform: [ require('grunt-react').browserify ],
           browserifyOptions: {
             debug: true
-          },
-          watch: true,
-          keepalive: true
+          }
+        },
+        client: {
+          src: ['app/scripts/**/*.jsx'],
+          dest: 'scripts/app.built.js'
         },
         files: makeBuildSrcPathObj(config.jsToBuild, config.buildDev)
       },
       dist: {
         options: {
-          transform: ['reactify'],
+          transform: [ require('grunt-react').browserify ],
         },
         files: makeBuildSrcPathObj(config.jsToBuild, config.buildDist)
       }
@@ -217,12 +211,16 @@ var makeBuildBuildPathObj = function(fileNames, buildDir) {
         ],
         tasks: ['copy:dev']
       },
+      react: {
+        files: '<%= config.src %>scripts/components/*.jsx',
+        tasks: ['browserify']
+      },
       html: {
         files: '<%= config.src %>/*.html',
         tasks: ['buildDev'],
         options: {
           livereload: true
-        },
+        }
       }
     }
   // Goal:
