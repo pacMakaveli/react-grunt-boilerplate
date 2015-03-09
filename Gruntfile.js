@@ -2,60 +2,49 @@ var _ = require('underscore');
 'use strict';
 
 module.exports = function(grunt) {
-  var config = {
-    src: 'app',
-    dist: 'dist',
-    buildDev: 'dev',
-    buildDist: 'dist',
+
+  var appConfig = {
+    appDir:  'app',
+    devDir:  'dev',
+    distDir: 'dist',
     filesToCopy: [
-      // for performance we only match one level down: 'test/spec/{,*/}*.js'
-      // if you want to recursively match all subfolders: 'test/spec/**/*.js'
       '{,*/}*.{gif,jpeg,jpg,png,webp,gif,ico}',
       '{,*/}*.html',
       'fonts/{,*/}*.*'
     ],
-    // add any additional js/less/html files to build here:
-    jsToBuild: ['scripts/main.js', 'scripts/app.jsx'],
-    lessToBuild: ['styles/main.less'],
-    htmlToBuild: ['index.html']
+    buildJS:   ['scripts/main.js', 'scripts/app.jsx'],
+    buildCSS:  ['styles/main.less'],
+    buildHTML: ['index.html']
+  },
+
+  prependPath      = function(file, path) { return [path, '/', file].join('') },
+  prependSrc       = function(file) { return prependPath(file, appConfig.appDir) },
+  prependDevBuild  = function(file) { return prependPath(file, appConfig.devDir) },
+  prependDistBuild = function(file) { return prependPath(file, appConfig.distDir) },
+
+  builtExtension   = function(file) { return file.replace(/\.less$/, '.css').replace(/\.jsx$/, '.js') },
+
+  makeBuildSrcPathObj = function(files, buildDir) {
+    // {'[built file path]': '[source file path]'}
+
+    return _.object(files.map(function(file) {
+      return [prependPath(builtExtension(file), buildDir), prependSrc(file)];
+    }));
+  },
+
+  makeBuildBuildPathObj = function(files, buildDir) {
+    // {'[built file path]': '[built file path]'} if already moved to 'buildDir'
+
+    return _.object(files.map(function(file) {
+      return [prependPath(builtExtension(file), buildDir), prependPath(builtExtension(file), buildDir)];
+    }));
   };
-
-// helper functions for munging paths
-var prependPath = function(fileName, path) {
-  return [path, '/', fileName].join('');
-};
-var prependSrc = function(fileName) {
-  return prependPath(fileName, config.src);
-};
-var prependBuildDev = function(fileName) {
-  return prependPath(fileName, config.buildDev);
-};
-var prependBuildDist = function(fileName) {
-  return prependPath(fileName, config.buildDist);
-};
-var builtExtension = function(fileName) {
-  return fileName.replace(/\.less$/, '.css').replace(/\.jsx$/, '.js')
-};
-
-// some tasks expect object format {'[built file path]': '[source file path]'}
-var makeBuildSrcPathObj = function(fileNames, buildDir) {
-  return _.object(fileNames.map(function(fileName) {
-    return [prependPath(builtExtension(fileName), buildDir), prependSrc(fileName)];
-  }));
-};
-// or {'[built file path]': '[built file path]'} if we've already moved it to build directory
-var makeBuildBuildPathObj = function(fileNames, buildDir) {
-  return _.object(fileNames.map(function(fileName) {
-    var buildPath = prependPath(builtExtension(fileName), buildDir);
-    return [buildPath, buildPath];
-  }));
-};
 
   require("matchdep").filterDev("grunt-*").forEach(grunt.loadNpmTasks);
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    config: config,
+    appConfig: appConfig,
 
     watchify: {
       example: {
@@ -64,45 +53,42 @@ var makeBuildBuildPathObj = function(fileNames, buildDir) {
       }
     },
 
-    // clean out old files from build folders
     clean: {
       dev: {
         files: [{
           dot: true,
-          src: ['<%= config.buildDev %>/*', '!<%= config.buildDev %>/.git*']
+          src: ['<%= appConfig.devDir %>/*', '!<%= appConfig.devDir %>/.git*']
         }]
       },
       dist: {
         files: [{
           dot: true,
-          src: ['<%= config.buildDist %>/*', '!<%= config.buildDist %>/.git*']
+          src: ['<%= appConfig.distDir %>/*', '!<%= appConfig.distDir %>/.git*']
         }]
       }
     },
 
-    // copy static asset files from src/ to build/[dev or dist]
     copy: {
       dev: {
         files: [{
           expand: true,
           dot: true,
-          cwd: config.src,
-          dest: config.buildDev,
-          src: config.filesToCopy
+          cwd: appConfig.appDir,
+          dest: appConfig.devDir,
+          src: appConfig.filesToCopy
         }]
       },
       dist: {
         files: [{
           expand: true,
           dot: true,
-          cwd: config.src,
-          dest: config.buildDist,
-          src: config.filesToCopy
+          cwd: appConfig.appDir,
+          dest: appConfig.distDir,
+          src: appConfig.filesToCopy
         }]
       }
     },
 
-    // bundle JS with browserify
     browserify: {
       dev: {
         options: {
@@ -111,109 +97,112 @@ var makeBuildBuildPathObj = function(fileNames, buildDir) {
             debug: true
           }
         },
-        files: makeBuildSrcPathObj(config.jsToBuild, config.buildDev)
+        files: makeBuildSrcPathObj(appConfig.buildJS, appConfig.devDir)
       },
       dist: {
         options: {
           transform: [ require('grunt-react').browserify ],
         },
-        files: makeBuildSrcPathObj(config.jsToBuild, config.buildDist)
+        files: makeBuildSrcPathObj(appConfig.buildJS, appConfig.distDir)
       }
     },
 
-    // compile LESS to CSS
     less: {
       dev: {
-        files: makeBuildSrcPathObj(config.lessToBuild, config.buildDev)
+        files: makeBuildSrcPathObj(appConfig.buildCSS, appConfig.devDir)
       },
       dist: {
         options: {
           cleancss: true
         },
-        files: makeBuildSrcPathObj(config.lessToBuild, config.buildDist)
+        files: makeBuildSrcPathObj(appConfig.buildCSS, appConfig.distDir)
       }
     },
 
-    // replace placeholder tags in index.html to point to built js/css
     htmlbuild: {
       dev: {
-        src: config.htmlToBuild.map(prependBuildDev),
-        dest: '<%= config.buildDev %>/',
+        src: appConfig.buildHTML.map(prependDevBuild),
+        dest: '<%= appConfig.devDir %>/',
         options: {
           beautify: true,
           scripts: {
-            js: config.jsToBuild.map(prependBuildDev).map(builtExtension)
+            js: appConfig.buildJS.map(prependDevBuild).map(builtExtension)
           },
           styles: {
-            css: config.lessToBuild.map(prependBuildDev).map(builtExtension)
+            css: appConfig.buildCSS.map(prependDevBuild).map(builtExtension)
           }
         }
       },
       dist: {
-        src: config.htmlToBuild.map(prependBuildDist),
-        dest: '<%= config.buildDist %>/',
+        src: appConfig.buildHTML.map(prependDistBuild),
+        dest: '<%= appConfig.distDir %>/',
         options: {
           scripts: {
-            js: config.jsToBuild.map(prependBuildDist).map(builtExtension)
+            js: appConfig.buildJS.map(prependDistBuild).map(builtExtension)
           },
           styles: {
-            css: config.lessToBuild.map(prependBuildDist).map(builtExtension)
+            css: appConfig.buildCSS.map(prependDistBuild).map(builtExtension)
           }
         }
       }
     },
 
-    // run uglify on JS to minify it
     uglify: {
       dist: {
-        files: makeBuildBuildPathObj(config.jsToBuild, config.buildDist)
+        files: makeBuildBuildPathObj(appConfig.buildJS, appConfig.distDir)
       }
     },
 
-    // web server for serving files from build/[dev or dist]
     connect: {
-      dev: {
-        options: {
-          port: '1338',
-          livereload: 35729,
-          base: config.buildDev
-        }
+      options: {
+        port: '1338',
+        livereload: 35729
       },
-      dist: {
-        options: {
-          port: '1338',
-          base: config.buildDist
-        }
-      }
+      dev:  { base: appConfig.devDir },
+      dist: { base: appConfig.distDir }
     },
 
-    // watch files for changes and run appropriate tasks to rebuild build/dev
     watch: {
       grunt: {
-        files: 'Gruntfile.js'
+        files: 'Gruntfile.js',
+        options: {
+          livereload: true
+        }
       },
       less: {
-        files: '<%= config.src %>/styles/**/*.*',
-        tasks: ['less:dev']
+        files: '<%= appConfig.appDir %>/styles/**/*.*',
+        // tasks: ['less:dev'],
+        options: {
+          livereload: true
+        }
       },
       browserify: {
-        files: '<%= config.src %>/scripts/**/*.*',
-        tasks: ['browserify:dev']
+        files: '<%= appConfig.appDir %>/scripts/**/*.*',
+        // tasks: ['browserify:dev'],
+        options: {
+          livereload: true
+        }
       },
       copy: {
         files: [
-          '<%= config.src %>/{,*/}*.{gif,jpeg,jpg,png,webp,gif,ico}',
-          '<%= config.src %>/fonts/{,*/}*.*'
+          '<%= appConfig.appDir %>/{,*/}*.{gif,jpeg,jpg,png,webp,gif,ico}',
+          '<%= appConfig.appDir %>/fonts/{,*/}*.*'
         ],
-        tasks: ['copy:dev']
+        // tasks: ['copy:dev'],
+        options: {
+          livereload: true
+        }
       },
       react: {
-        files: '<%= config.src %>scripts/components/*.jsx',
-        tasks: ['browserify']
+        files: '<%= appConfig.appDir %>scripts/components/*.jsx',
+        // tasks: ['browserify'],
+        options: {
+          livereload: true
+        }
       },
       html: {
-        files: '<%= config.src %>/*.html',
-        tasks: ['buildDev'],
+        files: '<%= appConfig.appDir %>/*.html',
+        tasks: ['devBuild'],
         options: {
           livereload: true
         }
@@ -238,45 +227,9 @@ var makeBuildBuildPathObj = function(fileNames, buildDir) {
   //  4: Move all required files to dist folder
   //  5: Deploy to FTP
 
-    // browserify: {
-    //   options: {
-    //     transform: [ require('grunt-react').browserify ]
-    //   },
-    //   app: {
-    //     src: 'dist/js/*.js',
-    //     dest: 'dist/js/test.js'
-    //   }
-    // },
-
-    // react: {
-    //   files: {
-    //     expand: true,
-    //     cwd: 'app/components',
-    //     src: ['**/*.jsx'],
-    //     dest: 'dist/js',
-    //     ext: '.js'
-    //   }
-    // },
-
-    // connect: {
-    //   options: {
-    //     port: 1337,
-    //     hostname: 'localhost'
-    //   },
-    //   livereload: {
-    //     options: {
-    //       middleware: function (connect) {
-    //         return [
-    //           lrSnippet,
-    //           mountFolder(connect, 'app')
-    //         ];
-    //       }
-    //     }
-    //   }
-    // }
   });
 
-  grunt.registerTask('buildDev', [
+  grunt.registerTask('devBuild', [
       'clean:dev',      // clean old files out of build/dev
       'copy:dev',       // copy static asset files from app/ to build/dev
       'browserify:dev', // bundle JS with browserify
@@ -284,13 +237,13 @@ var makeBuildBuildPathObj = function(fileNames, buildDir) {
       'htmlbuild:dev'   // replace tags in index.html to point to built js/css
   ]);
   grunt.registerTask('serveDev', [
-      'buildDev',
+      'devBuild',
       'connect:dev',     // web server for serving files from build/dev
       'watch'            // watch src files for changes and rebuild when necessary
   ]);
 
   // Distribution tasks
-  grunt.registerTask('buildDist', [
+  grunt.registerTask('distBuild', [
       'clean:dist',      // clean old files out of build/dist
       'copy:dist',       // copy static asset files from app/ to build/dist
       'browserify:dist', // bundle JS with browserify
@@ -299,13 +252,12 @@ var makeBuildBuildPathObj = function(fileNames, buildDir) {
       'uglify:dist'     // minify JS files
   ]);
   grunt.registerTask('serveDist', [
-      'buildDist',
+      'distBuild',
       'connect:dev',     // web server for serving files from build/dev
       'watch'            // watch src files for changes and rebuild when necessary
   ]);
 
-  // Task aliases
-  grunt.registerTask('build', ['buildDist']);
+  grunt.registerTask('build', ['distBuild']);
   grunt.registerTask('serve', ['serveDev']);
   grunt.registerTask('debug', ['serveDev']);
 }
