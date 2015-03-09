@@ -11,45 +11,54 @@ jQuery, for ReactJS Ajax ( will be replaced with )
 
 INSTALL
 
-git clone
+``` bash
+git clone git@github.com:pacMakaveli/react-grunt-boilerplate.git && cd react-grunt-boilerplate
 npm install
-grunt for launching the Demo App
+grunt
+```
 
 STRUCTURE
 
-app - for developing, raw
-app
-  scripts
-    components
-    - app.jsx
-    - main.js
-
-  styles
-    - main.less
-
+##### `app` Structure
+`Contains all your application' files, raw & untouched`
+```
+scripts
+  components
+    - *.jsx
+  - app.jsx
+  - main.js
+styles
+  - main.less
 - index.html
 - *.html
+```
 
-dev - for developing, everything compiles here
-dev
-  scripts
-    - app.js
-    - main.js
+##### `dev` Structure
+`Contains all your application' files, compiled & unminified`
+``` bash
+$ grunt serve
+```
+```
+scripts
+  - app.js
+  - main.js
+styles
+  - main.css
+- index.html
+- *.html
+```
 
-  styles
-    - main.css
-
-  - index.html
-  - *.html
-
-dist - `grunt serve` to compile for production ( minify and such )
-dist
-  scripts
-    - app.js
-    - main.js
-
-  styles
-    - main.css
-
-  - index.html
-  - *.html
+##### `dev` Structure
+`Contains all your application' files, compiled, minified and ready to deploy`
+``` bash
+$ grunt deploy
+```
+```
+scripts
+  - app.js
+  - main.js
+styles
+  - main.css
+- index.html
+- *.html
+```
