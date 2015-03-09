@@ -4,6 +4,8 @@ var _ = require('underscore');
 module.exports = function(grunt) {
 
   var appConfig = {
+    uri: 'localhost',
+    port: '1338',
     appDir:  'app',
     devDir:  'dev',
     distDir: 'dist',
@@ -146,6 +148,9 @@ module.exports = function(grunt) {
     },
 
     uglify: {
+      options: {
+        banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+      },
       dist: {
         files: makeBuildObj(appConfig.buildJS, appConfig.distDir)
       }
@@ -153,7 +158,7 @@ module.exports = function(grunt) {
 
     connect: {
       options: {
-        port: '1338',
+        port: appConfig.port,
         livereload: 35729
       },
       dev:  {
@@ -165,6 +170,12 @@ module.exports = function(grunt) {
         options: {
           base: appConfig.distDir
         }
+      }
+    },
+
+    open: {
+      server: {
+        path: 'http://<%= appConfig.uri %>:<%= appConfig.port %>'
       }
     },
 
@@ -212,6 +223,7 @@ module.exports = function(grunt) {
   grunt.registerTask('serveDev', [
     'buildDev',
     'connect:dev',
+    'open',
     'watch'
   ]);
 
@@ -223,9 +235,11 @@ module.exports = function(grunt) {
     'htmlbuild:dist',
     'uglify:dist'
   ]);
+
   grunt.registerTask('serveDist', [
     'buildDist',
     'connect:dev',
+    'open',
     'watch'
   ]);
 
