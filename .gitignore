@@ -5,6 +5,7 @@ node_modules
 # SASS/LESS
 .sass-cache
 
-# Dist
+# Development and Distribution folders
 
-dist
+dev/*
+dist/*
