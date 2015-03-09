@@ -119,6 +119,23 @@ module.exports = function(grunt) {
       }
     },
 
+    autoprefixer: {
+      options: {
+        browsers: [
+          'last 2 versions'
+        ],
+        diff: true
+      },
+      dev: {
+        src: '<%= appConfig.devDir %>/styles/*.css',
+        dest: '<%= appConfig.devDir %>/styles/map.css'
+      },
+      dist: {
+        src: '<%= appConfig.distDir %>/styles/*.css',
+        dest: '<%= appConfig.distDir %>/styles/map.css'
+      }
+    },
+
     htmlbuild: {
       dev: {
         src: appConfig.buildHTML.map(prependDevBuild),
@@ -188,7 +205,7 @@ module.exports = function(grunt) {
       },
       less: {
         files: '<%= appConfig.appDir %>/styles/**/*.*',
-        tasks: ['less:dev']
+        tasks: ['less:dev', 'autoprefixer:dev']
       },
       browserify: {
         files: '<%= appConfig.appDir %>/scripts/**/*.*',
@@ -217,6 +234,7 @@ module.exports = function(grunt) {
     'copy:dev',
     'browserify:dev',
     'less:dev',
+    'autoprefixer:dev',
     'htmlbuild:dev'
   ]);
 
