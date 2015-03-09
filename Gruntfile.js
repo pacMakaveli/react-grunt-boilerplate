@@ -122,10 +122,12 @@ module.exports = function(grunt) {
         diff: true
       },
       dev: {
-        files: makeBuildSourceObj(appConfig.buildCSS, appConfig.devDir)
+        src: '<%= appConfig.devDir %>/styles/main.css',
+        dest: '<%= appConfig.devDir %>/styles/main.css',
       },
       dist: {
-        files: makeBuildSourceObj(appConfig.buildCSS, appConfig.distDir)
+        src: '<%= appConfig.distDir %>/styles/main.css',
+        dest: '<%= appConfig.distDir %>/styles/main.css',
       }
     },
 
@@ -197,11 +199,8 @@ module.exports = function(grunt) {
         files: 'Gruntfile.js'
       },
       sass: {
-        options: {
-          livereload: true
-        },
         files: '<%= appConfig.appDir %>/styles/**/*.*',
-        tasks: ['sass:dev']
+        tasks: ['sass:dev', 'autoprefixer:dev']
       },
       browserify: {
         files: '<%= appConfig.appDir %>/scripts/**/*.*',
@@ -240,18 +239,12 @@ module.exports = function(grunt) {
     'watch'
   ]);
 
-  // For Ubuntu users, watch doesn't work
-  grunt.registerTask('serveDevUbuntu', [
-    'buildDev',
-    'open',
-    'connect:dev:keepalive'
-  ]);
-
   grunt.registerTask('buildDist', [
     'clean:dist',
     'copy:dist',
     'browserify:dist',
     'sass:dist',
+    'autoprefixer:dist',
     'htmlbuild:dist',
     'uglify:dist'
   ]);
@@ -264,7 +257,6 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('default', ['serveDev']);
-  grunt.registerTask('serve:ubuntu', ['serveDevUbuntu']);
   grunt.registerTask('debug', ['serveDist']);
   grunt.registerTask('deploy', ['buildDist']);
 }
